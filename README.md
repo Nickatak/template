@@ -12,46 +12,115 @@ This template provides a foundation for applications requiring user authenticati
 - **Responsive UI**: Modern frontend built with Next.js and Tailwind CSS
 - **API-Driven**: Clean separation between backend API and frontend consumer
 
-## Quick Start
+## Prerequisites
 
-### Backend Setup
+- Python 3.8+
+- Node.js 16+
+- Make (usually pre-installed on macOS/Linux, install via `choco` or `winget` on Windows)
 
-#### Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-#### Run migrations
+### Initial Setup
 
 ```bash
-python manage.py migrate
+make install
 ```
 
-#### Start development server
+This will:
+- Create a Python virtual environment (`.venv`)
+- Install all backend dependencies
+- Run database migrations
+- Install frontend dependencies
+
+## Development - Dev User
+
+For quick testing, you can create a development user with pre-set credentials:
 
 ```bash
-python manage.py runserver
+make dev-user
 ```
 
-The API will be available at `http://localhost:8000/api/`
+Login credentials:
+- Email: `test@ex.com`
+- Password: `Qweqwe123`
 
-### Frontend Setup
-
-#### Install dependencies
+To delete the dev user:
 
 ```bash
-cd frontend
-npm install
+make dev-user-delete
 ```
 
-#### Start development server
+> **Warning**: These commands are for development only. Do not use in production.
+
+### Running the Application
+
+Start both backend and frontend servers:
 
 ```bash
-npm run dev
+make dev
 ```
 
-The frontend will be available at `http://localhost:3000/`
+- Backend API: `http://localhost:8000/api/`
+- Frontend: `http://localhost:3000/`
+
+Or run them separately:
+
+```bash
+make run-backend  # Django backend on port 8000
+make run-frontend # Next.js frontend on port 3000
+```
+
+Stop servers:
+
+```bash
+make kill
+```
+
+### Setup & Installation
+
+| Command | Description |
+|---------|-------------|
+| `make venv` | Create Python virtual environment |
+| `make install` | Install dependencies and run migrations |
+| `make pre-commit-install` | Setup pre-commit hooks |
+
+### Running the Application
+
+| Command | Description |
+|---------|-------------|
+| `make dev` | Start both backend and frontend servers |
+| `make run-backend` | Start Django development server |
+| `make run-frontend` | Start Next.js development server |
+| `make kill` | Stop all running servers |
+
+### Testing
+
+| Command | Description |
+|---------|-------------|
+| `make test` | Run all tests |
+| `make test-api` | Run API tests only |
+| `make test-e2e` | Run end-to-end tests |
+| `make test-cov` | Run tests with coverage report |
+
+> **Note**: For `make test-e2e`, both the backend and frontend servers must be running. Start them with `make dev` before running e2e tests.
+
+## Project Structure
+
+```
+├── api/                          # Django app
+│   ├── models/                   # User model
+│   ├── serializers/              # DRF serializers
+│   ├── views/                    # API views and auth endpoints
+│   ├── migrations/               # Database migrations
+│   └── management/commands/      # Django management commands
+├── core/                         # Django project settings
+├── frontend/                     # Next.js application
+│   ├── app/                      # Next.js app directory
+│   ├── lib/                      # Frontend utilities and API client
+│   └── public/                   # Static assets
+├── tests/                        # Test suite
+├── manage.py                     # Django entry point
+├── Makefile                      # Build and task automation
+└── requirements.txt              # Python dependencies
+```
 
 ## Authentication Flow
 

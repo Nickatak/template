@@ -1,4 +1,4 @@
-.PHONY: help install run-frontend run-backend dev venv kill test test-api test-e2e test-cov pre-commit-install
+.PHONY: help install run-frontend run-backend dev venv kill test test-api test-e2e test-cov pre-commit-install dev-user dev-user-delete
 VENV_DIR := .venv
 PYTHON := $(VENV_DIR)/bin/python
 PIP := $(VENV_DIR)/bin/pip
@@ -19,6 +19,10 @@ help:
 	@echo "  make test-api          Run API-level tests only"
 	@echo "  make test-e2e          Run browser-based E2E tests"
 	@echo "  make test-cov          Run tests with coverage report"
+	@echo ""
+	@echo "Dev user commands (DEV ONLY - do not use in production):"
+	@echo "  make dev-user          Create dev user (test@ex.com / Qweqwe123)"
+	@echo "  make dev-user-delete   Delete dev user if it exists"
 
 venv:
 	python3 -m venv $(VENV_DIR)
@@ -77,3 +81,13 @@ test-cov:
 	@echo "Running tests with coverage report..."
 	$(PYTEST) tests/ -v --cov=api --cov-report=html --cov-report=term-missing
 	@echo "Coverage report generated in htmlcov/index.html"
+
+# ============================================================================
+# Dev User Commands (DO NOT USE IN PRODUCTION)
+# ============================================================================
+
+dev-user:
+	$(PYTHON) manage.py add_dev_user
+
+dev-user-delete:
+	$(PYTHON) manage.py delete_dev_user
