@@ -1,7 +1,8 @@
-.PHONY: help migrate runserver install run-frontend run-backend dev venv kill
+.PHONY: help migrate runserver install run-frontend run-backend dev venv kill test test-api test-e2e test-auth test-watch test-cov
 VENV_DIR := .venv
 PYTHON := $(VENV_DIR)/bin/python
 PIP := $(VENV_DIR)/bin/pip
+PYTEST := $(VENV_DIR)/bin/pytest
 
 help:
 	@echo "Available commands:"
@@ -12,6 +13,14 @@ help:
 	@echo "  make dev               Start both backend and frontend servers"
 	@echo "  make shell             Start Django shell"
 	@echo "  make kill              Stop servers on ports 3000 and 8000"
+	@echo ""
+	@echo "Testing commands:"
+	@echo "  make test              Run all tests"
+	@echo "  make test-api          Run API-level tests only"
+	@echo "  make test-e2e          Run browser-based E2E tests"
+	@echo "  make test-auth         Run authentication tests"
+	@echo "  make test-watch        Run tests in watch mode"
+	@echo "  make test-cov          Run tests with coverage report"
 
 venv:
 	python3 -m venv $(VENV_DIR)
@@ -45,5 +54,35 @@ kill:
 	@lsof -ti:8000 | xargs -r kill -9 2>/dev/null || true
 	@lsof -ti:3000 | xargs -r kill -9 2>/dev/null || true
 	@echo "Servers stopped"
+
+# ============================================================================
+# Testing Commands
+# ============================================================================
+
+test:
+	@echo "Running all tests..."
+	$(PYTEST) tests/ -v
+
+test-api:
+	@echo "Running API tests only..."
+	$(PYTEST) tests/test_auth_api.py -v
+
+test-e2e:
+	@echo "Running E2E tests only..."
+	@echo "Note: Ensure frontend and backend are running on localhost:3000 and localhost:8000"
+	$(PYTEST) tests/test_auth_e2e.py -v
+
+test-auth:
+	@echo "Running all authentication tests..."
+	$(PYTEST) tests/ -v -m auth
+
+test-watch:
+	@echo "Running tests in watch mode..."
+	$(PYTEST) tests/ -v --looponfail
+
+test-cov:
+	@echo "Running tests with coverage report..."
+	$(PYTEST) tests/ -v --cov=api --cov-report=html --cov-report=term-missing
+	@echo "Coverage report generated in htmlcov/index.html"
 
 

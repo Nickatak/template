@@ -4,3 +4,10 @@ django-cors-headers==4.0.0
 python-decouple==3.8
 djangorestframework-simplejwt==5.5.1
 PyJWT==2.10.1
+
+# Testing dependencies
+pytest==7.4.3
+pytest-django==4.7.0
+pytest-asyncio==0.23.1
+httpx==0.25.2
+playwright==1.40.0
