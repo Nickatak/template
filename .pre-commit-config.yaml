@@ -33,9 +33,17 @@ repos:
         args: ["--max-line-length=120"]
         exclude: "migrations/"
 
-  # E2E Tests - Custom local hook
+  # JavaScript/TypeScript linting
   - repo: local
     hooks:
+      - id: eslint
+        name: ESLint
+        entry: bash -c "cd frontend && npm run lint"
+        language: system
+        pass_filenames: false
+        stages: [commit]
+        files: "^frontend/.*\\.(js|jsx|ts|tsx)$"
+
       - id: e2e-tests
         name: E2E Tests
         entry: make test-e2e

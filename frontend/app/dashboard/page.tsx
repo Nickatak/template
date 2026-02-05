@@ -26,7 +26,8 @@ export default function DashboardPage() {
 
         const data = await getProfile();
         setUser(data);
-      } catch (err) {
+      } catch {
+        setError('Failed to load profile. Please log in again.');
         clearTokens();
         router.push('/login');
       } finally {
