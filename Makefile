@@ -1,11 +1,10 @@
 .PHONY: help \
 	local-venv local-install local-install-frontend local-install-backend \
 	local-up local-run local-run-frontend local-run-backend local-kill-ports \
-	local-migrate local-test local-test-api local-test-e2e local-test-cov \
-	local-pre-commit-install local-dev-user local-dev-user-delete local-clean \
-	dev-build dev-up dev-down dev-logs dev-shell-backend dev-shell-mysql dev-migrate dev-test \
-	prod-build prod-up prod-down prod-logs \
-	venv install run-frontend run-backend dev kill test test-api test-e2e test-cov pre-commit-install dev-user dev-user-delete
+	local-migrate local-seed local-test local-test-api local-test-e2e local-test-cov \
+	local-pre-commit-install local-clean \
+	dev-build dev-up dev-down dev-logs dev-shell-backend dev-shell-mysql dev-migrate dev-seed dev-test \
+	prod-build prod-up prod-down prod-logs prod-seed
 
 VENV_DIR := .venv
 PYTHON := $(VENV_DIR)/bin/python
@@ -37,8 +36,7 @@ help:
 	@echo "  make local-test-e2e       - Run E2E tests only"
 	@echo "  make local-test-cov       - Run tests with coverage report"
 	@echo "  make local-pre-commit-install - Install pre-commit hooks"
-	@echo "  make local-dev-user       - Create dev user (test@ex.com / Qweqwe123)"
-	@echo "  make local-dev-user-delete - Delete the dev user if it exists"
+	@echo "  make local-seed           - Seed database with initial data"
 	@echo "  make local-clean          - Remove local build artifacts and cache"
 	@echo ""
 	@echo "Dev Docker Commands:"
@@ -49,6 +47,7 @@ help:
 	@echo "  make dev-shell-backend    - Open shell in backend container"
 	@echo "  make dev-shell-mysql      - Open MySQL shell in mysql container"
 	@echo "  make dev-migrate          - Run backend migrations in container"
+	@echo "  make dev-seed             - Seed database with initial data in container"
 	@echo "  make dev-test             - Run backend tests in container"
 	@echo ""
 	@echo "Staging Docker Commands:"
@@ -56,6 +55,7 @@ help:
 	@echo "  make prod-up              - Start staging stack in detached mode"
 	@echo "  make prod-down            - Stop staging stack"
 	@echo "  make prod-logs            - Stream staging stack logs"
+	@echo "  make prod-seed            - Seed database with initial data in staging"
 	@echo ""
 	@echo "Override frontend API URL with:"
 	@echo "  make local-run-frontend LOCAL_API_BASE_URL=http://localhost:8000/api"
@@ -147,6 +147,9 @@ local-migrate:
 	$(PYTHON) manage.py makemigrations
 	$(PYTHON) manage.py migrate
 
+local-seed:
+	$(PYTHON) manage.py seed_dev
+
 local-test:
 	$(PYTEST) tests/ -v
 
@@ -163,12 +166,6 @@ local-test-cov:
 
 local-pre-commit-install:
 	$(PYTHON) -m pre_commit install
-
-local-dev-user:
-	$(PYTHON) manage.py add_dev_user
-
-local-dev-user-delete:
-	$(PYTHON) manage.py delete_dev_user
 
 local-clean:
 	rm -rf frontend/.next frontend/out htmlcov .pytest_cache
@@ -201,6 +198,9 @@ dev-shell-mysql:
 dev-migrate:
 	$(DEV_COMPOSE) exec backend python manage.py migrate
 
+dev-seed:
+	$(DEV_COMPOSE) exec backend python manage.py seed_dev
+
 dev-test:
 	$(DEV_COMPOSE) exec backend pytest tests/ -v
 
@@ -220,20 +220,5 @@ prod-down:
 prod-logs:
 	$(PROD_COMPOSE) logs -f
 
-# ============================================================================
-# BACKWARD-COMPATIBLE ALIASES
-# ============================================================================
-
-venv: local-venv
-install: local-install
-run-frontend: local-run-frontend
-run-backend: local-run-backend
-dev: local-up
-kill: local-kill-ports
-test: local-test
-test-api: local-test-api
-test-e2e: local-test-e2e
-test-cov: local-test-cov
-pre-commit-install: local-pre-commit-install
-dev-user: local-dev-user
-dev-user-delete: local-dev-user-delete
+prod-seed:
+	$(PROD_COMPOSE) exec backend python manage.py seed_prod
