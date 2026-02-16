@@ -95,7 +95,7 @@ make dev-user-delete
 Start both backend and frontend servers:
 
 ```bash
-make dev
+make local-up
 ```
 
 - Backend API: `http://localhost:8000/api/`
@@ -104,43 +104,60 @@ make dev
 Or run them separately:
 
 ```bash
-make run-backend  # Django backend on port 8000
-make run-frontend # Next.js frontend on port 3000
+make local-run-backend
+make local-run-frontend
 ```
 
-Stop servers:
+Stop common dev ports:
 
 ```bash
-make kill
+make local-kill-ports
 ```
 
-### Setup & Installation
+### Local Make Targets
 
 | Command | Description |
 |---------|-------------|
-| `make venv` | Create Python virtual environment |
-| `make install` | Install dependencies and run migrations |
-| `make pre-commit-install` | Setup pre-commit hooks |
+| `make local-install` | Install dependencies and run migrations |
+| `make local-up` | Start both backend and frontend servers |
+| `make local-run-backend` | Start Django development server |
+| `make local-run-frontend` | Start Next.js development server |
+| `make local-kill-ports` | Stop listeners on ports 8000 and 3000 |
+| `make local-test` | Run all tests |
+| `make local-test-api` | Run API tests only |
+| `make local-test-e2e` | Run end-to-end tests |
+| `make local-test-cov` | Run tests with coverage report |
+| `make local-pre-commit-install` | Setup pre-commit hooks |
+| `make local-dev-user` | Create dev user (`test@ex.com` / `Qweqwe123`) |
+| `make local-dev-user-delete` | Delete dev user if it exists |
 
-### Running the Application
+`make install`, `make dev`, `make test`, and other legacy targets remain available as aliases.
+
+### Docker Workflow
+
+```bash
+make dev-up
+```
+
+This starts the backend and frontend containers using `docker-compose.yml`.
 
 | Command | Description |
 |---------|-------------|
-| `make dev` | Start both backend and frontend servers |
-| `make run-backend` | Start Django development server |
-| `make run-frontend` | Start Next.js development server |
-| `make kill` | Stop all running servers |
+| `make dev-build` | Build local Docker images |
+| `make dev-up` | Start Docker stack in foreground |
+| `make dev-down` | Stop and remove Docker stack |
+| `make dev-logs` | Stream Docker logs |
+| `make dev-shell-backend` | Open shell in backend container |
+| `make dev-migrate` | Run Django migrations in backend container |
+| `make dev-test` | Run backend tests in backend container |
 
-### Testing
+For staging-like runs, use:
 
-| Command | Description |
-|---------|-------------|
-| `make test` | Run all tests |
-| `make test-api` | Run API tests only |
-| `make test-e2e` | Run end-to-end tests |
-| `make test-cov` | Run tests with coverage report |
+```bash
+make prod-up
+```
 
-> **Note**: For `make test-e2e`, both the backend and frontend servers must be running. Start them with `make dev` before running e2e tests.
+This uses `docker-compose.yml` + `docker-compose.staging.yml`.
 
 ## Project Structure
 

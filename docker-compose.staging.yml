@@ -1,0 +1,13 @@
+services:
+  backend:
+    environment:
+      DEBUG: ${STAGING_DEBUG:-False}
+      ALLOWED_HOSTS: ${STAGING_ALLOWED_HOSTS:-staging.example.com,localhost,127.0.0.1}
+      CORS_ALLOWED_ORIGINS: ${STAGING_CORS_ALLOWED_ORIGINS:-https://staging.example.com}
+
+  frontend:
+    build:
+      args:
+        NEXT_PUBLIC_API_URL: ${STAGING_NEXT_PUBLIC_API_URL:-https://staging.example.com/api}
+    environment:
+      NEXT_PUBLIC_API_URL: ${STAGING_NEXT_PUBLIC_API_URL:-https://staging.example.com/api}
