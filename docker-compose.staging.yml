@@ -1,7 +1,15 @@
 services:
+  mysql:
+    environment:
+      MYSQL_DATABASE: ${STAGING_MYSQL_DATABASE:-template}
+      MYSQL_USER: ${STAGING_MYSQL_USER:-template}
+      MYSQL_PASSWORD: ${STAGING_MYSQL_PASSWORD:-template}
+      MYSQL_ROOT_PASSWORD: ${STAGING_MYSQL_ROOT_PASSWORD:-root}
+
   backend:
     environment:
       DEBUG: ${STAGING_DEBUG:-False}
+      DATABASE_URL: ${STAGING_DATABASE_URL:-mysql://template:template@mysql:3306/template}
       ALLOWED_HOSTS: ${STAGING_ALLOWED_HOSTS:-staging.example.com,localhost,127.0.0.1}
       CORS_ALLOWED_ORIGINS: ${STAGING_CORS_ALLOWED_ORIGINS:-https://staging.example.com}
 

@@ -140,6 +140,8 @@ make dev-up
 ```
 
 This starts the backend and frontend containers using `docker-compose.yml`.
+The Docker stack also starts a MySQL container, and backend defaults to:
+`DATABASE_URL=mysql://template:template@mysql:3306/template`.
 
 | Command | Description |
 |---------|-------------|
@@ -150,6 +152,11 @@ This starts the backend and frontend containers using `docker-compose.yml`.
 | `make dev-shell-backend` | Open shell in backend container |
 | `make dev-migrate` | Run Django migrations in backend container |
 | `make dev-test` | Run backend tests in backend container |
+
+MySQL is exposed on `localhost:3306` by default and can be changed with
+`MYSQL_HOST_PORT`.
+The init script also grants the app user access to `test_<db>` so
+`pytest` can create/use MySQL test databases.
 
 For staging-like runs, use:
 

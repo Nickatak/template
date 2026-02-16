@@ -3,7 +3,7 @@
 	local-up local-run local-run-frontend local-run-backend local-kill-ports \
 	local-migrate local-test local-test-api local-test-e2e local-test-cov \
 	local-pre-commit-install local-dev-user local-dev-user-delete local-clean \
-	dev-build dev-up dev-down dev-logs dev-shell-backend dev-migrate dev-test \
+	dev-build dev-up dev-down dev-logs dev-shell-backend dev-shell-mysql dev-migrate dev-test \
 	prod-build prod-up prod-down prod-logs \
 	venv install run-frontend run-backend dev kill test test-api test-e2e test-cov pre-commit-install dev-user dev-user-delete
 
@@ -47,6 +47,7 @@ help:
 	@echo "  make dev-down             - Stop and remove Docker stack"
 	@echo "  make dev-logs             - Stream Docker logs"
 	@echo "  make dev-shell-backend    - Open shell in backend container"
+	@echo "  make dev-shell-mysql      - Open MySQL shell in mysql container"
 	@echo "  make dev-migrate          - Run backend migrations in container"
 	@echo "  make dev-test             - Run backend tests in container"
 	@echo ""
@@ -193,6 +194,9 @@ dev-logs:
 
 dev-shell-backend:
 	$(DEV_COMPOSE) exec backend sh
+
+dev-shell-mysql:
+	$(DEV_COMPOSE) exec mysql mysql -u$${MYSQL_USER:-template} -p$${MYSQL_PASSWORD:-template} $${MYSQL_DATABASE:-template}
 
 dev-migrate:
 	$(DEV_COMPOSE) exec backend python manage.py migrate

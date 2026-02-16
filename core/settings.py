@@ -2,9 +2,9 @@
 Django settings for core project.
 """
 
-import re
 from datetime import timedelta
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 
 from decouple import config
 
@@ -67,31 +67,53 @@ WSGI_APPLICATION = "core.wsgi.application"
 
 # Database configuration from environment
 DATABASE_URL = config("DATABASE_URL", default="sqlite:///db.sqlite3")
+parsed_db_url = urlparse(DATABASE_URL)
 
-if DATABASE_URL.startswith("sqlite"):
+if parsed_db_url.scheme == "sqlite":
+    db_path = unquote(parsed_db_url.path or "")
+    if not db_path or db_path == "/":
+        db_name = BASE_DIR / "db.sqlite3"
+    elif db_path.startswith("/"):
+        db_name = Path(db_path)
+    else:
+        db_name = BASE_DIR / db_path
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
+            "NAME": db_name,
         }
     }
-elif DATABASE_URL.startswith("postgresql"):
-    # Parse PostgreSQL URL: postgresql://user:password@host:port/dbname
-    match = re.match(r"postgresql://([^:]+):([^@]+)@([^:]+):(\d+)/(.+)", DATABASE_URL)
-    if match:
-        user, password, host, port, name = match.groups()
+elif parsed_db_url.scheme in {"postgresql", "postgres"}:
+    if parsed_db_url.hostname and parsed_db_url.path and parsed_db_url.path != "/":
         DATABASES = {
             "default": {
                 "ENGINE": "django.db.backends.postgresql",
-                "NAME": name,
-                "USER": user,
-                "PASSWORD": password,
-                "HOST": host,
-                "PORT": port,
+                "NAME": parsed_db_url.path.lstrip("/"),
+                "USER": unquote(parsed_db_url.username or ""),
+                "PASSWORD": unquote(parsed_db_url.password or ""),
+                "HOST": parsed_db_url.hostname,
+                "PORT": parsed_db_url.port or 5432,
             }
         }
     else:
         raise ValueError(f"Invalid PostgreSQL DATABASE_URL format: {DATABASE_URL}")
+elif parsed_db_url.scheme in {"mysql", "mysql2"}:
+    if parsed_db_url.hostname and parsed_db_url.path and parsed_db_url.path != "/":
+        mysql_db_name = parsed_db_url.path.lstrip("/")
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.mysql",
+                "NAME": mysql_db_name,
+                "USER": unquote(parsed_db_url.username or ""),
+                "PASSWORD": unquote(parsed_db_url.password or ""),
+                "HOST": parsed_db_url.hostname,
+                "PORT": parsed_db_url.port or 3306,
+                "OPTIONS": {"charset": "utf8mb4"},
+                "TEST": {"NAME": f"test_{mysql_db_name}"},
+            }
+        }
+    else:
+        raise ValueError(f"Invalid MySQL DATABASE_URL format: {DATABASE_URL}")
 else:
     raise ValueError(f"Unsupported DATABASE_URL format: {DATABASE_URL}")
 
