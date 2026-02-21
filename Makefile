@@ -8,10 +8,12 @@
 	prod-build prod-up prod-down prod-logs prod-seed prod-config \
 	env-init env-validate-local env-validate-docker env-validate-prod
 
-VENV_DIR := .venv
+BACKEND_DIR := backend
+VENV_DIR := $(BACKEND_DIR)/.venv
 PYTHON := $(VENV_DIR)/bin/python
 PIP := $(VENV_DIR)/bin/pip
 PYTEST := $(VENV_DIR)/bin/pytest
+PYTEST_CFG := -c $(BACKEND_DIR)/pytest.ini
 LOCAL_API_BASE_URL ?= http://localhost:8000/api
 LOCAL_KILL_PORTS ?= 8000 3000
 DOCKER_COMPOSE := docker compose
@@ -102,10 +104,10 @@ local-venv:
 local-install: env-init local-venv local-install-backend local-install-frontend
 	@echo "Setting up environment files..."
 	./scripts/toggle-env.sh dev
-	$(PYTHON) manage.py migrate
+	$(PYTHON) $(BACKEND_DIR)/manage.py migrate
 
 local-install-backend: local-venv
-	$(PIP) install -r requirements.txt
+	$(PIP) install -r $(BACKEND_DIR)/requirements.txt
 
 local-install-frontend:
 	npm install --prefix frontend
@@ -170,27 +172,27 @@ local-run-frontend:
 	NEXT_PUBLIC_API_URL=$(LOCAL_API_BASE_URL) npm run dev --prefix frontend
 
 local-run-backend:
-	$(PYTHON) manage.py runserver
+	$(PYTHON) $(BACKEND_DIR)/manage.py runserver
 
 local-migrate:
-	$(PYTHON) manage.py makemigrations
-	$(PYTHON) manage.py migrate
+	$(PYTHON) $(BACKEND_DIR)/manage.py makemigrations
+	$(PYTHON) $(BACKEND_DIR)/manage.py migrate
 
 local-seed:
-	$(PYTHON) manage.py seed_dev
+	$(PYTHON) $(BACKEND_DIR)/manage.py seed_dev
 
 local-test:
-	$(PYTEST) tests/ -v
+	$(PYTEST) $(PYTEST_CFG) $(BACKEND_DIR)/tests/ -v
 
 local-test-api:
-	$(PYTEST) tests/test_auth_api.py -v
+	$(PYTEST) $(PYTEST_CFG) $(BACKEND_DIR)/tests/test_auth_api.py -v
 
 local-test-e2e:
 	@echo "Ensure frontend/backend are running on ports 3000 and 8000 before E2E tests."
-	$(PYTEST) tests/test_auth_e2e.py -v
+	$(PYTEST) $(PYTEST_CFG) $(BACKEND_DIR)/tests/test_auth_e2e.py -v
 
 local-test-cov:
-	$(PYTEST) tests/ -v --cov=api --cov-report=html --cov-report=term-missing
+	$(PYTEST) $(PYTEST_CFG) $(BACKEND_DIR)/tests/ -v --cov=$(BACKEND_DIR)/api --cov-report=html --cov-report=term-missing
 	@echo "Coverage report generated in htmlcov/index.html"
 
 local-pre-commit-install:
@@ -198,6 +200,7 @@ local-pre-commit-install:
 
 local-clean:
 	rm -rf frontend/.next frontend/out htmlcov .pytest_cache
+	rm -rf $(BACKEND_DIR)/.pytest_cache
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 	find . -type f -name "*.pyc" -delete
 	@echo "Clean complete."

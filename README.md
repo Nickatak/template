@@ -164,10 +164,13 @@ make prod-config
 ## Project Structure
 
 ```text
-├── api/                          # Django app
-├── core/                         # Django project settings
+├── backend/                      # Django backend project
+│   ├── api/                      # Django app
+│   ├── core/                     # Django project settings
+│   ├── tests/                    # Backend test suite
+│   ├── manage.py                 # Django CLI entry
+│   └── requirements.txt          # Backend Python deps
 ├── frontend/                     # Next.js app
-├── tests/                        # Test suite
 ├── scripts/                      # Env + utility scripts
 ├── docker-compose.yml            # Base compose
 ├── docker-compose.staging.yml    # Production-like override
