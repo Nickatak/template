@@ -182,7 +182,7 @@ local-seed:
 	$(PYTHON) $(BACKEND_DIR)/manage.py seed_dev
 
 local-test:
-	$(PYTEST) $(PYTEST_CFG) $(BACKEND_DIR)/tests/ -v
+	$(PYTEST) $(PYTEST_CFG) $(BACKEND_DIR)/tests/ -v -m "not e2e"
 
 local-test-api:
 	$(PYTEST) $(PYTEST_CFG) $(BACKEND_DIR)/tests/test_auth_api.py -v
@@ -192,7 +192,7 @@ local-test-e2e:
 	$(PYTEST) $(PYTEST_CFG) $(BACKEND_DIR)/tests/test_auth_e2e.py -v
 
 local-test-cov:
-	$(PYTEST) $(PYTEST_CFG) $(BACKEND_DIR)/tests/ -v --cov=$(BACKEND_DIR)/api --cov-report=html --cov-report=term-missing
+	$(PYTEST) $(PYTEST_CFG) $(BACKEND_DIR)/tests/ -v -m "not e2e" --cov=$(BACKEND_DIR)/api --cov-report=html --cov-report=term-missing
 	@echo "Coverage report generated in htmlcov/index.html"
 
 local-pre-commit-install:
@@ -234,7 +234,7 @@ docker-seed:
 	$(DOCKER_COMPOSE) exec backend python manage.py seed_dev
 
 docker-test:
-	$(DOCKER_COMPOSE) exec backend pytest tests/ -v
+	$(DOCKER_COMPOSE) exec backend pytest tests/ -v -m "not e2e"
 
 docker-config:
 	$(DOCKER_COMPOSE) config

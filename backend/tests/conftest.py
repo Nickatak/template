@@ -214,7 +214,7 @@ def pytest_collection_modifyitems(config, items):
     # Skip E2E tests if servers not available
     if not servers_available:
         skip_reason = (
-            "E2E servers not available (run: make run-backend && make run-frontend)"
+            "E2E servers not available (run: make local-run-backend && make local-run-frontend)"
         )
         if not django_available:
             skip_reason += f"\n  - Django not running on {DJANGO_HOST}"
