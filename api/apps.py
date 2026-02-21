@@ -10,10 +10,10 @@ class ApiConfig(AppConfig):
         """Check for dev user in production and refuse to start.
 
         The test user (test@ex.com) is created for development convenience using:
-            - `make dev-user` or `python manage.py add_dev_user`
+            - `python manage.py add_dev_user`
 
         And should be deleted before production deployment using:
-            - `make dev-user-delete` or `python manage.py delete_dev_user`
+            - `python manage.py delete_dev_user`
 
         This check ensures that the test user is not accidentally left in the
         production database, which would be a critical security risk.

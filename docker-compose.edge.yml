@@ -1,0 +1,23 @@
+services:
+  mysql:
+    ports: !reset []
+
+  backend:
+    ports: !reset []
+    networks:
+      default: {}
+      edge:
+        aliases:
+          - template-backend
+
+  frontend:
+    ports: !reset []
+    networks:
+      default: {}
+      edge:
+        aliases:
+          - template-frontend
+
+networks:
+  edge:
+    external: true

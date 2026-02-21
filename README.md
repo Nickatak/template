@@ -1,226 +1,173 @@
 # Template Repository
 
-A full-stack template repository with JWT authentication, user management, and dashboard routing. Built with Django REST Framework (backend) and Next.js (frontend).
+Full-stack starter template with JWT auth, user management, and a protected
+dashboard flow. Backend is Django REST Framework, frontend is Next.js.
 
-This template provides a foundation for applications requiring user authentication. The auth flow redirects authenticated users to a dashboard which can be customized for any application use case.
+## Breaking Change
+
+Environment command taxonomy is now:
+
+- `local-*` for host-native workflows
+- `docker-*` for Docker workflows
+- `prod-*` for production-like Docker workflows
+
+`dev-*` command names were intentionally removed.
+
+Rationale is documented in `docs/adr/0001-template-runtime-and-command-taxonomy.md`.
+
+## Goals
+
+- Fast standalone startup for new apps
+- Clean path to deploy orchestration via Compose overrides
+- Clear environment contracts for local, docker, and prod modes
 
 ## Features
 
-- **JWT Authentication**: Secure token-based authentication with login/register/logout flows
-- **User Management**: Custom user model with email-based authentication
-- **Protected Routes**: Dashboard accessible only to authenticated users
-- **Responsive UI**: Modern frontend built with Next.js and Tailwind CSS
-- **API-Driven**: Clean separation between backend API and frontend consumer
+- JWT login/register/logout/me endpoints
+- Email-based custom user model
+- Protected dashboard routing
+- Backend/frontend separation with API-first design
+- Docker stack with MySQL runtime defaults
 
 ## Prerequisites
 
 - Python 3.8+
 - Node.js 16+
-- Make (usually pre-installed on macOS/Linux, install via `choco` or `winget` on Windows)
+- Make
+- Docker (for `docker-*` / `prod-*` flows)
 
 ## Environment Configuration
 
-This project uses environment-specific configuration files managed through symlinks:
+This repo uses `.env` as a symlink to mode-specific files:
 
-### Setup
+- `.env.dev`
+- `.env.prod`
+- `.env.example` (template)
 
-1. **Automatic setup** during `make install`:
-   - `.env.dev` and `.env.prod` are automatically copied from `.env.example` (if they don't exist)
-   - Development environment is automatically activated via toggle-env script
-
-2. **Edit the environment files** with your specific settings (optional for development, required for production):
-   - `.env.dev` - Development configuration (DEBUG=True, SQLite, etc.)
-   - `.env.prod` - Production configuration (DEBUG=False, production database, etc.)
-   - `.env.example` - Template file (tracked in git, do not modify for sensitive data)
-
-3. **Switch environments** (if needed):
-   ```bash
-   ./scripts/toggle-env.sh dev   # Use development environment
-   # or
-   ./scripts/toggle-env.sh prod  # Use production environment
-   ```
-
-The script creates a `.env` symlink pointing to your chosen environment file.
-
-### Environment Script Commands
-
-| Command | Description |
-|---------|-------------|
-| `./scripts/toggle-env.sh dev` | Activate development environment |
-| `./scripts/toggle-env.sh prod` | Activate production environment |
-| `./scripts/toggle-env.sh current` | Show active environment |
-| `./scripts/toggle-env.sh status` | Show environment files status |
-| `./scripts/toggle-env.sh help` | Display script help |
-
-> **Note**: Development environment is automatically activated during `make install`. Use these commands to switch between environments or check the current environment status.
-
-### Initial Setup
+Initialize env files once:
 
 ```bash
-make install
+make env-init
 ```
 
-This will:
-- Create a Python virtual environment (`.venv`)
-- Automatically copy `.env.example` to `.env.dev` and `.env.prod` (if they don't exist)
-- Activate the **development environment** (`.env.dev`) via the toggle-env script
-- Install all backend dependencies
-- Run database migrations
-- Install frontend dependencies
-
-> **Deployment Note**: The `make install` command automatically sets up a development environment. For production deployment, run `./scripts/toggle-env.sh prod` after updating `.env.prod` with production values.
-
-## Development - Dev User
-
-For quick testing, you can create a development user with pre-set credentials:
+Switch active env:
 
 ```bash
-make dev-user
+./scripts/toggle-env.sh dev
+./scripts/toggle-env.sh prod
+./scripts/toggle-env.sh current
 ```
 
-Login credentials:
-- Email: `test@ex.com`
-- Password: `Qweqwe123`
-
-To delete the dev user:
+Validate env contract:
 
 ```bash
-make dev-user-delete
+make env-validate-local
+make env-validate-docker
+make env-validate-prod
 ```
 
-> **Warning**: These commands are for development only. Do not use in production.
+`make env-validate-prod` will fail on a fresh clone until production-like
+variables are set in `.env.prod`.
 
-### Running the Application
-
-Start both backend and frontend servers:
+## Quickstart
 
 ```bash
+make local-install
 make local-up
 ```
 
 - Backend API: `http://localhost:8000/api/`
 - Frontend: `http://localhost:3000/`
 
-Or run them separately:
+## Command Groups
+
+### Local
+
+- `make local-install`
+- `make local-up`
+- `make local-run-backend`
+- `make local-run-frontend`
+- `make local-kill-ports`
+- `make local-test`
+- `make local-test-api`
+- `make local-test-e2e`
+- `make local-test-cov`
+- `make local-migrate`
+- `make local-seed`
+- `make local-pre-commit-install`
+- `make local-clean`
+
+### Docker
+
+- `make docker-build`
+- `make docker-up`
+- `make docker-down`
+- `make docker-logs`
+- `make docker-shell-backend`
+- `make docker-shell-mysql`
+- `make docker-migrate`
+- `make docker-seed`
+- `make docker-test`
+- `make docker-config`
+
+Docker defaults to MySQL:
+`DATABASE_URL=mysql://template:template@mysql:3306/template`
+
+### Production-Like
+
+- `make prod-build`
+- `make prod-up`
+- `make prod-down`
+- `make prod-logs`
+- `make prod-seed`
+
+Uses:
+
+- `docker-compose.yml`
+- `docker-compose.staging.yml`
+
+## Standalone and Orchestration-Ready
+
+This repo runs standalone by default. It is also orchestration-ready by using
+Compose override layering.
+
+Optional edge override:
+
+- `docker-compose.edge.yml` removes host port publishing for app services
+- attaches services to external `edge` network
+- adds stable aliases: `template-frontend`, `template-backend`
+
+Example:
 
 ```bash
-make local-run-backend
-make local-run-frontend
+make docker-edge-network
+make docker-edge-up
 ```
 
-Stop common dev ports:
+Render effective config:
 
 ```bash
-make local-kill-ports
+make docker-edge-config
+make prod-config
 ```
-
-### Local Make Targets
-
-| Command | Description |
-|---------|-------------|
-| `make local-install` | Install dependencies and run migrations |
-| `make local-up` | Start both backend and frontend servers |
-| `make local-run-backend` | Start Django development server |
-| `make local-run-frontend` | Start Next.js development server |
-| `make local-kill-ports` | Stop listeners on ports 8000 and 3000 |
-| `make local-test` | Run all tests |
-| `make local-test-api` | Run API tests only |
-| `make local-test-e2e` | Run end-to-end tests |
-| `make local-test-cov` | Run tests with coverage report |
-| `make local-pre-commit-install` | Setup pre-commit hooks |
-| `make local-dev-user` | Create dev user (`test@ex.com` / `Qweqwe123`) |
-| `make local-dev-user-delete` | Delete dev user if it exists |
-
-`make install`, `make dev`, `make test`, and other legacy targets remain available as aliases.
-
-### Docker Workflow
-
-```bash
-make dev-up
-```
-
-This starts the backend and frontend containers using `docker-compose.yml`.
-The Docker stack also starts a MySQL container, and backend defaults to:
-`DATABASE_URL=mysql://template:template@mysql:3306/template`.
-
-| Command | Description |
-|---------|-------------|
-| `make dev-build` | Build local Docker images |
-| `make dev-up` | Start Docker stack in foreground |
-| `make dev-down` | Stop and remove Docker stack |
-| `make dev-logs` | Stream Docker logs |
-| `make dev-shell-backend` | Open shell in backend container |
-| `make dev-migrate` | Run Django migrations in backend container |
-| `make dev-test` | Run backend tests in backend container |
-
-MySQL is exposed on `localhost:3306` by default and can be changed with
-`MYSQL_HOST_PORT`.
-The init script also grants the app user access to `test_<db>` so
-`pytest` can create/use MySQL test databases.
-
-For staging-like runs, use:
-
-```bash
-make prod-up
-```
-
-This uses `docker-compose.yml` + `docker-compose.staging.yml`.
 
 ## Project Structure
 
-```
+```text
 ├── api/                          # Django app
-│   ├── models/                   # User model
-│   ├── serializers/              # DRF serializers
-│   ├── views/                    # API views and auth endpoints
-│   ├── migrations/               # Database migrations
-│   └── management/commands/      # Django management commands
 ├── core/                         # Django project settings
-├── frontend/                     # Next.js application
-│   ├── app/                      # Next.js app directory
-│   ├── lib/                      # Frontend utilities and API client
-│   └── public/                   # Static assets
+├── frontend/                     # Next.js app
 ├── tests/                        # Test suite
-├── manage.py                     # Django entry point
-├── Makefile                      # Build and task automation
-└── requirements.txt              # Python dependencies
+├── scripts/                      # Env + utility scripts
+├── docker-compose.yml            # Base compose
+├── docker-compose.staging.yml    # Production-like override
+├── docker-compose.edge.yml       # Orchestration-ready edge override
+└── Makefile                      # Command entry points
 ```
 
-## Authentication Flow
+## Authentication Endpoints
 
-1. User registers or logs in via `/login` or `/register` pages
-2. Credentials are verified against the backend JWT auth endpoints
-3. JWT token is stored securely in the frontend
-4. Authenticated users are redirected to `/dashboard`
-5. Dashboard is protected and requires valid authentication token
-
-## API Endpoints
-
-- `POST /api/auth/register/` - Register new user
-- `POST /api/auth/login/` - Login and get JWT token
-- `POST /api/auth/logout/` - Logout
-- `GET /api/auth/me/` - Get current user (requires token)
-
-## Customization
-
-Replace the dashboard page with your application logic. The authentication and routing infrastructure is already in place and can be extended for any use case.
-
-## Hidden Files and Directories
-
-VS Code is configured to hide common build and cache directories to keep the file explorer clean:
-
-- `__pycache__/` - Python cache files
-- `.venv/` - Virtual environment
-- `.pytest_cache/` - Pytest cache
-- `.next/` - Next.js build files
-- `node_modules/` - npm dependencies
-- `htmlcov/` - Coverage reports
-- `*.sqlite3` - Database files
-- `.mypy_cache/` - MyPy cache
-
-### Unhiding Files
-
-To temporarily show hidden files, you can:
-
-1. Edit `.vscode/settings.json` and remove the items from `files.exclude`
-2. Or use the VS Code keyboard shortcut: `Ctrl+Shift+.` (or `Cmd+Shift+.` on Mac) to toggle hidden files
+- `POST /api/auth/register/`
+- `POST /api/auth/login/`
+- `POST /api/auth/logout/`
+- `GET /api/auth/me/`
