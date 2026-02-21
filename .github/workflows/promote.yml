@@ -1,0 +1,78 @@
+name: Promote Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      backend_image:
+        description: "Pinned backend image ref (ghcr.io/...@sha256:...)"
+        required: true
+        type: string
+      frontend_image:
+        description: "Pinned frontend image ref (ghcr.io/...@sha256:...)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  validate-and-emit:
+    name: Validate Promotion and Emit Deployment Intent
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate pinned image refs
+        run: |
+          case "${{ inputs.backend_image }}" in
+            *@sha256:*) ;;
+            *) echo "backend_image must be digest pinned"; exit 1 ;;
+          esac
+          case "${{ inputs.frontend_image }}" in
+            *@sha256:*) ;;
+            *) echo "frontend_image must be digest pinned"; exit 1 ;;
+          esac
+
+      - name: Build deployment intent payload
+        run: |
+          mkdir -p artifacts
+          cat > artifacts/deployment-intent.json <<JSON
+          {
+            "repository": "${{ github.repository }}",
+            "requested_by": "${{ github.actor }}",
+            "requested_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "environment": "${{ inputs.environment }}",
+            "images": {
+              "backend": "${{ inputs.backend_image }}",
+              "frontend": "${{ inputs.frontend_image }}"
+            },
+            "orchestration_contract": {
+              "deployment_mode": "parent-repo",
+              "compose_override": "docker-compose.edge.yml"
+            }
+          }
+JSON
+
+      - name: Upload deployment intent
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-intent-${{ github.run_id }}
+          path: artifacts/deployment-intent.json
+
+      - name: Optionally dispatch to parent orchestration repo
+        if: ${{ secrets.ORCHESTRATION_DISPATCH_TOKEN != '' && vars.ORCHESTRATION_REPO != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.ORCHESTRATION_DISPATCH_TOKEN }}
+          ORCH_REPO: ${{ vars.ORCHESTRATION_REPO }}
+        run: |
+          payload="$(cat artifacts/deployment-intent.json)"
+          curl -sS -X POST \
+            -H "Authorization: token ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${ORCH_REPO}/dispatches" \
+            -d "{\"event_type\":\"template-promotion-request\",\"client_payload\":${payload}}"

@@ -161,6 +161,17 @@ make docker-edge-config
 make prod-config
 ```
 
+## CI/CD
+
+This template includes a blended good+mature CI/CD baseline with:
+
+- PR/push validation pipeline
+- Immutable image publishing to GHCR
+- Security scans on source and published images
+- Manual promotion contract for parent orchestration
+
+See `docs/cicd.md` for workflow details and required repo settings.
+
 ## Project Structure
 
 ```text
