@@ -69,6 +69,15 @@ make env-validate-prod
 `make env-validate-prod` will fail on a fresh clone until production-like
 variables are set in `.env.prod`.
 
+Common host/origin overrides:
+
+- `DOCKER_ALLOWED_HOSTS`
+- `DOCKER_CORS_ALLOWED_ORIGINS`
+- `DOCKER_CSRF_TRUSTED_ORIGINS`
+- `STAGING_ALLOWED_HOSTS`
+- `STAGING_CORS_ALLOWED_ORIGINS`
+- `STAGING_CSRF_TRUSTED_ORIGINS`
+
 ## Quickstart
 
 ```bash
@@ -136,6 +145,7 @@ Optional edge override:
 - `docker-compose.edge.yml` removes host port publishing for app services
 - attaches services to external `edge` network
 - adds stable aliases: `template-frontend`, `template-backend`
+- full walkthrough: `docs/edge-orchestration.md`
 
 Example:
 

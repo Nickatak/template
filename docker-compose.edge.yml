@@ -1,7 +1,9 @@
 services:
+  # Edge mode: keep DB private (no host port publishing).
   mysql:
     ports: !reset []
 
+  # Edge mode: ingress should route to backend by network alias.
   backend:
     ports: !reset []
     networks:
@@ -10,6 +12,7 @@ services:
         aliases:
           - template-backend
 
+  # Edge mode: ingress should route to frontend by network alias.
   frontend:
     ports: !reset []
     networks:
@@ -19,5 +22,6 @@ services:
           - template-frontend
 
 networks:
+  # Parent/orchestration repo owns this shared network.
   edge:
     external: true
