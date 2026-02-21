@@ -3,10 +3,13 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost
 export async function apiCall(endpoint: string, options: RequestInit = {}) {
   const accessToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
   };
+  const optionHeaders = new Headers(options.headers);
+  optionHeaders.forEach((value, key) => {
+    headers[key] = value;
+  });
 
   if (accessToken) {
     headers['Authorization'] = `Bearer ${accessToken}`;
@@ -104,4 +107,5 @@ export function clearTokens() {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
-  }}
+  }
+}
