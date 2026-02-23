@@ -17,11 +17,6 @@ User = get_user_model()
 class AuthViewSet(viewsets.ViewSet):
     """
     ViewSet for authentication operations.
-
-    Provides the following endpoints:
-    - POST /api/auth/register/ - User registration
-    - GET /api/auth/profile/ - Get current user profile
-    - PUT /api/auth/profile/ - Update current user profile
     """
 
     def get_permissions(self):
@@ -37,14 +32,48 @@ class AuthViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["post"])
     def login(self, request):
-        """
-        User login endpoint.
+        """Authenticate credentials and return JWT token pair.
 
-        POST /api/auth/login/
-        - email: str
-        - password: str
+        Contract:
+        - `POST`:
+          - `200`: credentials accepted and token pair returned.
+            - Guarantees:
+              - response includes both `access` and `refresh` tokens. `[APP]`
+          - `400`: payload missing required fields.
+            - Guarantees: no object mutations. `[APP]`
+          - `401`: credentials rejected.
+            - Guarantees: no object mutations. `[APP]`
 
-        Returns: access and refresh tokens
+        - Preconditions:
+          - none (`AllowAny`).
+
+        - Object mutations:
+          - `POST`:
+            - Creates:
+              - Standard: none.
+              - Audit: none.
+            - Edits:
+              - Standard: none.
+              - Audit: none.
+            - Deletes: none.
+
+        - Incoming payload (`POST`) shape:
+          - JSON map:
+            {
+              "email": "string (required)",
+              "password": "string (required)"
+            }
+
+        - Idempotency and retry semantics:
+          - `POST` is retry-safe for invalid credentials (read-only failure path).
+          - `POST` is not idempotent in token value issuance semantics.
+
+        - Test anchors:
+          - `backend/tests/test_auth_api.py::TestLogin::test_successful_login`
+          - `backend/tests/test_auth_api.py::TestLogin::test_login_invalid_email`
+          - `backend/tests/test_auth_api.py::TestLogin::test_login_invalid_password`
+          - `backend/tests/test_auth_api.py::TestLogin::test_login_empty_email`
+          - `backend/tests/test_auth_api.py::TestLogin::test_login_empty_password`
         """
         email = request.data.get("email", "").strip()
         password = request.data.get("password", "")
@@ -81,13 +110,47 @@ class AuthViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["post"])
     def register(self, request):
-        """
-        User registration endpoint.
+        """Register a new user account.
 
-        POST /api/auth/register/
-        - email: str (unique)
-        - password: str
-        - password_confirm: str
+        Contract:
+        - `POST`:
+          - `201`: user created and serialized profile returned.
+            - Guarantees:
+              - a new user row exists for the submitted unique email. `[DB+APP]`
+              - response excludes raw password fields. `[APP]`
+          - `400`: payload invalid or email already exists.
+            - Guarantees: no durable partial mutation from failed request path. `[DB+APP]`
+
+        - Preconditions:
+          - none (`AllowAny`).
+
+        - Object mutations:
+          - `POST`:
+            - Creates:
+              - Standard: user account.
+              - Audit: none.
+            - Edits:
+              - Standard: none.
+              - Audit: none.
+            - Deletes: none.
+
+        - Incoming payload (`POST`) shape:
+          - JSON map:
+            {
+              "email": "string (required, unique)",
+              "password": "string (required)",
+              "password_confirm": "string (required; matches password)"
+            }
+
+        - Idempotency and retry semantics:
+          - `POST` is not idempotent for new unique identities.
+          - retrying successful payload with the same email returns validation error.
+
+        - Test anchors:
+          - `backend/tests/test_auth_api.py::TestRegistration::test_successful_registration`
+          - `backend/tests/test_auth_api.py::TestRegistration::test_registration_duplicate_email`
+          - `backend/tests/test_auth_api.py::TestRegistration::test_registration_password_mismatch`
+          - `backend/tests/test_auth_api.py::TestRegistration::test_registration_missing_fields`
         """
         if User.objects.filter(email=request.data.get("email")).exists():
             return Response(
@@ -103,13 +166,54 @@ class AuthViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["get", "put"])
     def profile(self, request):
-        """
-        User profile endpoint.
+        """Read or update the authenticated user's profile.
 
-        GET /api/auth/profile/ - Get current user profile
-        PUT /api/auth/profile/ - Update current user profile
+        Contract:
+        - `GET`:
+          - `200`: current user profile returned.
+            - Guarantees: profile reflects persisted user state. `[APP]`
+          - `401`: authentication missing/invalid.
+            - Guarantees: no object mutations. `[APP]`
+        - `PUT`:
+          - `200`: profile updated and returned.
+            - Guarantees:
+              - updated email remains unique across users. `[DB+APP]`
+              - persisted user profile matches the response body. `[APP]`
+          - `400`: payload invalid (including duplicate email conflict).
+            - Guarantees: no durable partial mutation from failed request path. `[DB+APP]`
+          - `401`: authentication missing/invalid.
+            - Guarantees: no object mutations. `[APP]`
 
-        Requires: Authorization header with valid JWT token
+        - Preconditions:
+          - caller must be authenticated (`IsAuthenticated`).
+
+        - Object mutations:
+          - `GET`: none.
+          - `PUT`:
+            - Creates:
+              - Standard: none.
+              - Audit: none.
+            - Edits:
+              - Standard: authenticated `User` row (email only when provided and valid).
+              - Audit: none.
+            - Deletes: none.
+
+        - Incoming payload (`PUT`) shape:
+          - JSON map:
+            {
+              "email": "string (optional; must be unique if provided)"
+            }
+
+        - Idempotency and retry semantics:
+          - `GET` is idempotent and read-only.
+          - `PUT` is conditionally idempotent when retried with unchanged values.
+
+        - Test anchors:
+          - `backend/tests/test_auth_api.py::TestProfile::test_get_profile_authenticated`
+          - `backend/tests/test_auth_api.py::TestProfile::test_get_profile_unauthenticated`
+          - `backend/tests/test_auth_api.py::TestProfile::test_update_profile_email`
+          - `backend/tests/test_auth_api.py::TestProfile::test_update_profile_duplicate_email`
+          - `backend/tests/test_auth_api.py::TestProfile::test_update_profile_unauthenticated`
         """
         if request.method == "GET":
             serializer = UserSerializer(request.user)
@@ -136,13 +240,30 @@ class AuthViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["get"])
     def search_users(self, request):
-        """
-        Search for users by email.
+        """Search users by email substring with small result window.
 
-        GET /api/auth/search-users/?q=email
-        - q: str (search query, minimum 2 characters)
+        Contract:
+        - `GET`:
+          - `200`: filtered user list returned (possibly empty).
+            - Guarantees:
+              - response contains at most 10 `(id, email)` entries. `[APP]`
+              - query length `< 2` returns `[]` without DB mutation. `[APP]`
+          - `401`: authentication missing/invalid.
+            - Guarantees: no object mutations. `[APP]`
 
-        Returns: List of matching users
+        - Preconditions:
+          - caller must be authenticated (`IsAuthenticated`).
+
+        - Object mutations:
+          - `GET`: none.
+
+        - Idempotency and retry semantics:
+          - `GET` is idempotent and read-only.
+
+        - Test anchors:
+          - `backend/tests/test_auth_api.py::TestUserSearch::test_search_users_authenticated`
+          - `backend/tests/test_auth_api.py::TestUserSearch::test_search_users_minimum_length`
+          - `backend/tests/test_auth_api.py::TestUserSearch::test_search_users_limit`
         """
         query = request.query_params.get("q", "").strip()
 

@@ -36,6 +36,14 @@ repos:
   # Commit message validation (Conventional Commits for semantic versioning)
   - repo: local
     hooks:
+      - id: route-docstring-contract
+        name: REST route docstring contract
+        entry: backend/.venv/bin/python scripts/check_route_docstrings.py
+        language: system
+        pass_filenames: false
+        stages: [commit]
+        files: "^backend/api/views/.*\\.py$"
+
       - id: commitlint
         name: Commit message validation
         entry: backend/.venv/bin/python scripts/commit-msg-validator.py

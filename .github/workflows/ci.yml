@@ -57,6 +57,9 @@ jobs:
       - name: Install backend deps
         run: make local-install-backend
 
+      - name: Validate REST route docstring contracts
+        run: make local-check-route-docstrings
+
       - name: Install frontend deps
         run: make local-install-frontend
 

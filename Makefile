@@ -1,7 +1,7 @@
 .PHONY: help \
 	local-venv local-install local-install-frontend local-install-backend \
 	local-up local-run local-run-frontend local-run-backend local-kill-ports \
-	local-migrate local-seed local-test local-test-api local-test-e2e local-test-cov \
+	local-migrate local-seed local-test local-test-api local-test-e2e local-test-cov local-check-route-docstrings \
 	local-pre-commit-install local-clean \
 	docker-build docker-up docker-down docker-logs docker-shell-backend docker-shell-mysql docker-migrate docker-seed docker-test docker-config \
 	docker-edge-network docker-edge-build docker-edge-up docker-edge-down docker-edge-logs docker-edge-config \
@@ -47,6 +47,7 @@ help:
 	@echo "  make local-test-api       - Run API tests only"
 	@echo "  make local-test-e2e       - Run E2E tests only"
 	@echo "  make local-test-cov       - Run tests with coverage report"
+	@echo "  make local-check-route-docstrings - Validate REST route contract docstrings"
 	@echo "  make local-pre-commit-install - Install pre-commit hooks"
 	@echo "  make local-seed           - Seed database with initial data"
 	@echo "  make local-clean          - Remove local build artifacts and cache"
@@ -194,6 +195,9 @@ local-test-e2e:
 local-test-cov:
 	$(PYTEST) $(PYTEST_CFG) $(BACKEND_DIR)/tests/ -v -m "not e2e" --cov=$(BACKEND_DIR)/api --cov-report=html --cov-report=term-missing
 	@echo "Coverage report generated in htmlcov/index.html"
+
+local-check-route-docstrings:
+	$(PYTHON) scripts/check_route_docstrings.py
 
 local-pre-commit-install:
 	$(PYTHON) -m pre_commit install

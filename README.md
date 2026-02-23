@@ -101,6 +101,7 @@ make local-up
 - `make local-test-api`
 - `make local-test-e2e`
 - `make local-test-cov`
+- `make local-check-route-docstrings`
 - `make local-migrate`
 - `make local-seed`
 - `make local-pre-commit-install`
@@ -171,6 +172,15 @@ This template includes a blended good+mature CI/CD baseline with:
 - Manual promotion contract for parent orchestration
 
 See `docs/cicd.md` for workflow details and required repo settings.
+
+## API Route Docstring Contract
+
+REST-ish route handlers in `backend/api/views/` are expected to use the
+contract-map docstring format (Contract, Preconditions, Object mutations,
+Idempotency/retry, Test anchors, and tagged Guarantees).
+
+- Reusable template: `docs/rest-route-docstring-template.md`
+- Local check: `make local-check-route-docstrings`
 
 ## Project Structure
 
