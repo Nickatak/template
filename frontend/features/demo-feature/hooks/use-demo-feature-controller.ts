@@ -2,24 +2,8 @@
 
 import { FormEvent, useState } from 'react';
 
-export type DemoFeatureFieldErrors = {
-  title?: string;
-};
-
-type DemoSubmission = {
-  title: string;
-  details: string;
-};
-
-function validateDemoFields(title: string): DemoFeatureFieldErrors {
-  const nextErrors: DemoFeatureFieldErrors = {};
-
-  if (!title.trim()) {
-    nextErrors.title = 'Title is required.';
-  }
-
-  return nextErrors;
-}
+import { DemoFeatureControllerApi, DemoFeatureFieldErrors } from './demo-feature-controller.types';
+import { validateDemoFields } from './demo-feature-validation';
 
 export function useDemoFeatureController() {
   const [title, setTitle] = useState('');
@@ -53,7 +37,8 @@ export function useDemoFeatureController() {
     setFieldErrors({});
   }
 
-  return {
+  // Explicit parent API object consumed by the feature console and child components.
+  const controllerApi: DemoFeatureControllerApi = {
     title,
     setTitle,
     details,
@@ -63,4 +48,6 @@ export function useDemoFeatureController() {
     lastSubmission,
     handleSubmit,
   };
+
+  return controllerApi;
 }

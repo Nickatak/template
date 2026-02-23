@@ -17,6 +17,17 @@ State how this frontend organizes route composition, feature boundaries, and deb
 3. Route files should not contain domain mutation logic, validation flow, or API orchestration.
 4. Move branching workflow behavior into feature-level components/controllers.
 
+## Controller API Policy
+1. Feature parent components (`*Console` or equivalent) should call one `use<Feature>Controller` hook.
+2. Parent controllers should return one explicit typed API object (for example `FeatureControllerApi`).
+3. Split domain concerns into focused helper/hook modules and compose them inside the parent controller.
+4. Child components should consume parent API slices and stay render/event focused.
+
+## Function Style Convention
+1. Top-level exported hooks/helpers/components should prefer `function` declarations.
+2. Local callbacks and closures inside hooks/components should prefer `const ... = (...) =>`.
+3. Apply style by scope/ownership instead of enforcing one syntax globally.
+
 ## Route To Entry Map
 | Route | Route File | Primary Entry |
 | --- | --- | --- |
@@ -44,6 +55,6 @@ List features that consume backend policy-contract endpoints.
 ## Feature Map Coverage
 List all feature map files in this project.
 
-1. `frontend/src/features/<feature>/FEATURE_MAP.md`
+1. `frontend/features/<feature>/FEATURE_MAP.md`
 2. `frontend/features/demo-feature/FEATURE_MAP.md` (included example)
 3. Template: `frontend/FEATURE_MAP_TEMPLATE.md`

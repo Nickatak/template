@@ -17,7 +17,7 @@ Demonstrate the routing shim pattern: route files mount a parent feature compone
 2. Parent/Owner:
    `DemoFeatureConsole` owns composition and wires controller state/actions into child components.
 3. Controller/Hook:
-   `useDemoFeatureController` owns form state, validation, submit handling, and status messaging.
+   `useDemoFeatureController` composes domain helpers and returns explicit parent API object `DemoFeatureControllerApi`.
 4. Children:
    `DemoFeatureForm` renders inputs and emits submit/change callbacks.
 5. Default behavior:
@@ -34,7 +34,7 @@ Demonstrate the routing shim pattern: route files mount a parent feature compone
 ## Backend Contracts Used
 - Contract endpoint(s): none
 - Consumed fields: none
-- Behavior source: local controller logic in `features/demo-feature/hooks/use-demo-feature-controller.ts`
+- Behavior source: controller composition in `features/demo-feature/hooks/use-demo-feature-controller.ts` plus validation/types helpers
 - Fallback policy: n/a (no contract adapter in this feature)
 
 ## State Model (Remote, Local, Derived)

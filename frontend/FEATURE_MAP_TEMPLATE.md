@@ -28,6 +28,7 @@ Describe where execution enters and how runtime flow is composed.
    - feature export entry:
 2. Parent/Owner:
 3. Controller/Hook:
+   explicitly name the parent controller API object (for example `FeatureControllerApi`) and where it is composed.
 4. Children:
 5. Default behavior:
 6. Overrides:

@@ -5,7 +5,7 @@ import { useDemoFeatureController } from '../hooks/use-demo-feature-controller';
 
 export function DemoFeatureConsole() {
   // Composition owner: receives route entry and wires controller state/actions into child UI.
-  const controller = useDemoFeatureController();
+  const controllerApi = useDemoFeatureController();
 
   return (
     <section className="space-y-6 rounded-xl border border-slate-800 bg-slate-900/70 p-6 shadow-2xl shadow-slate-950/40">
@@ -17,22 +17,22 @@ export function DemoFeatureConsole() {
         </p>
       </header>
 
-      <p className="text-sm text-slate-300">{controller.statusMessage}</p>
+      <p className="text-sm text-slate-300">{controllerApi.statusMessage}</p>
 
       <DemoFeatureForm
-        title={controller.title}
-        onTitleChange={controller.setTitle}
-        details={controller.details}
-        onDetailsChange={controller.setDetails}
-        fieldErrors={controller.fieldErrors}
-        onSubmit={controller.handleSubmit}
+        title={controllerApi.title}
+        onTitleChange={controllerApi.setTitle}
+        details={controllerApi.details}
+        onDetailsChange={controllerApi.setDetails}
+        fieldErrors={controllerApi.fieldErrors}
+        onSubmit={controllerApi.handleSubmit}
       />
 
-      {controller.lastSubmission ? (
+      {controllerApi.lastSubmission ? (
         <div className="rounded-lg border border-emerald-600/40 bg-emerald-950/30 p-4">
           <p className="text-sm font-medium text-emerald-300">Last submission</p>
-          <p className="mt-1 text-sm text-emerald-100">Title: {controller.lastSubmission.title}</p>
-          <p className="text-sm text-emerald-100">Details: {controller.lastSubmission.details || '(none)'}</p>
+          <p className="mt-1 text-sm text-emerald-100">Title: {controllerApi.lastSubmission.title}</p>
+          <p className="text-sm text-emerald-100">Details: {controllerApi.lastSubmission.details || '(none)'}</p>
         </div>
       ) : null}
     </section>

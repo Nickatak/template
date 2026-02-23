@@ -2,7 +2,7 @@
 
 import { FormEventHandler } from 'react';
 
-import type { DemoFeatureFieldErrors } from '../hooks/use-demo-feature-controller';
+import type { DemoFeatureFieldErrors } from '../hooks/demo-feature-controller.types';
 
 type DemoFeatureFormProps = {
   title: string;
