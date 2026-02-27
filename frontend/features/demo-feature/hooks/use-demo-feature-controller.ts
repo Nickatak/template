@@ -2,7 +2,11 @@
 
 import { FormEvent, useState } from 'react';
 
-import { DemoFeatureControllerApi, DemoFeatureFieldErrors } from './demo-feature-controller.types';
+import {
+  DemoFeatureControllerApi,
+  DemoFeatureFieldErrors,
+  DemoSubmission,
+} from './demo-feature-controller.types';
 import { validateDemoFields } from './demo-feature-validation';
 
 export function useDemoFeatureController() {

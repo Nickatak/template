@@ -1,7 +1,13 @@
+import {
+  clearClientSession,
+  loadClientSession,
+  saveClientSession,
+} from '../../features/session/client-session';
+
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 export async function apiCall(endpoint: string, options: RequestInit = {}) {
-  const accessToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+  const accessToken = getAccessToken();
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -90,22 +96,16 @@ export async function updateProfile(email: string): Promise<User> {
 }
 
 export function setTokens(tokens: AuthTokens) {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('accessToken', tokens.access);
-    localStorage.setItem('refreshToken', tokens.refresh);
-  }
+  saveClientSession({
+    token: tokens.access,
+    refreshToken: tokens.refresh,
+  });
 }
 
 export function getAccessToken(): string | null {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('accessToken');
-  }
-  return null;
+  return loadClientSession()?.token ?? null;
 }
 
 export function clearTokens() {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-  }
+  clearClientSession();
 }

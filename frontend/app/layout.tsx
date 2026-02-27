@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { AuthGate } from "./auth-gate";
+import { SessionAuthorizationProvider } from "../features/session/session-authorization";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -13,7 +15,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className="bg-slate-900 text-white">{children}</body>
+      <body className="bg-slate-900 text-white">
+        <SessionAuthorizationProvider>
+          <AuthGate>{children}</AuthGate>
+        </SessionAuthorizationProvider>
+      </body>
     </html>
   );
 }

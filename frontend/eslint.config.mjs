@@ -4,7 +4,7 @@ import ts from "typescript-eslint";
 
 export default [
   {
-    ignores: ["node_modules/", ".next/", "out/", "dist/", "build/"],
+    ignores: ["node_modules/", ".next/", ".next*/", "out/", "dist/", "build/"],
   },
   js.configs.recommended,
   ...ts.configs.recommended,

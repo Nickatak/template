@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getProfile, clearTokens, getAccessToken } from '../lib/api';
+import { useSessionAuthorization } from '../../features/session/session-authorization';
+import { getProfile, clearTokens } from '../lib/api';
 
 interface User {
   id: number;
@@ -14,16 +15,15 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const router = useRouter();
+  const { isAuthorized, isChecking } = useSessionAuthorization();
 
   useEffect(() => {
+    if (!isAuthorized) {
+      return;
+    }
+
     const fetchUser = async () => {
       try {
-        const accessToken = getAccessToken();
-        if (!accessToken) {
-          router.push('/login');
-          return;
-        }
-
         const data = await getProfile();
         setUser(data);
       } catch {
@@ -35,15 +35,15 @@ export default function DashboardPage() {
       }
     };
 
-    fetchUser();
-  }, [router]);
+    void fetchUser();
+  }, [isAuthorized, router]);
 
   const handleLogout = () => {
     clearTokens();
     router.push('/');
   };
 
-  if (loading) {
+  if (isChecking || (isAuthorized && loading)) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
         <div className="text-white text-xl">Loading...</div>
