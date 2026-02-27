@@ -10,8 +10,7 @@
     "**/.coverage": true,
     "**/.DS_Store": true,
     "**/*.egg-info": true,
-    "**/.mypy_cache": true,
-    "**/*.sqlite3": true
+    "**/.mypy_cache": true
   },
   "search.exclude": {
     "**/__pycache__": true,

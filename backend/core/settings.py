@@ -66,24 +66,13 @@ TEMPLATES = [
 WSGI_APPLICATION = "core.wsgi.application"
 
 # Database configuration from environment
-DATABASE_URL = config("DATABASE_URL", default="sqlite:///db.sqlite3")
+DATABASE_URL = config(
+    "DATABASE_URL",
+    default="mysql://template:template@127.0.0.1:3306/template",
+)
 parsed_db_url = urlparse(DATABASE_URL)
 
-if parsed_db_url.scheme == "sqlite":
-    db_path = unquote(parsed_db_url.path or "")
-    if not db_path or db_path == "/":
-        db_name = BASE_DIR / "db.sqlite3"
-    elif db_path.startswith("/"):
-        db_name = Path(db_path)
-    else:
-        db_name = BASE_DIR / db_path
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": db_name,
-        }
-    }
-elif parsed_db_url.scheme in {"postgresql", "postgres"}:
+if parsed_db_url.scheme in {"postgresql", "postgres"}:
     if parsed_db_url.hostname and parsed_db_url.path and parsed_db_url.path != "/":
         DATABASES = {
             "default": {

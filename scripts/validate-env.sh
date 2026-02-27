@@ -39,6 +39,15 @@ require_vars() {
   fi
 }
 
+require_mysql_url() {
+  local name="$1"
+  local value="${!name:-}"
+  if [[ ! "$value" =~ ^mysql2?:// ]]; then
+    echo "Invalid $name: must start with mysql:// or mysql2://"
+    exit 1
+  fi
+}
+
 set -a
 # shellcheck source=/dev/null
 . "$env_file"
@@ -47,12 +56,14 @@ set +a
 case "$mode" in
   local)
     require_vars SECRET_KEY JWT_SECRET DATABASE_URL NEXT_PUBLIC_API_URL
+    require_mysql_url DATABASE_URL
     ;;
   docker)
     require_vars SECRET_KEY MYSQL_DATABASE MYSQL_USER MYSQL_PASSWORD MYSQL_ROOT_PASSWORD
     ;;
   prod)
     require_vars SECRET_KEY JWT_SECRET STAGING_DATABASE_URL STAGING_ALLOWED_HOSTS STAGING_CORS_ALLOWED_ORIGINS STAGING_CSRF_TRUSTED_ORIGINS STAGING_NEXT_PUBLIC_API_URL STAGING_MYSQL_DATABASE STAGING_MYSQL_USER STAGING_MYSQL_PASSWORD STAGING_MYSQL_ROOT_PASSWORD
+    require_mysql_url STAGING_DATABASE_URL
     ;;
   *)
     echo "Unknown mode: $mode"

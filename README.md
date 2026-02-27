@@ -107,6 +107,9 @@ make local-up
 - `make local-pre-commit-install`
 - `make local-clean`
 
+Local mode now defaults to MySQL on host networking:
+`DATABASE_URL=mysql://template:template@127.0.0.1:3306/template`
+
 ### Docker
 
 - `make docker-build`
@@ -117,6 +120,9 @@ make local-up
 - `make docker-shell-mysql`
 - `make docker-migrate`
 - `make docker-seed`
+- `make db-seed`
+- `make db-reset-hard`
+- `make db-grant-test-db-perms`
 - `make docker-test`
 - `make docker-config`
 

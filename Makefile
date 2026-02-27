@@ -1,9 +1,10 @@
 .PHONY: help \
 	local-venv local-install local-install-frontend local-install-backend \
-	local-up local-run local-run-frontend local-run-backend local-kill-ports \
+	local-up local-run local-env-dev local-stop-docker-frontend local-stop-docker-backend local-ensure-db local-run-frontend local-run-backend local-kill-ports \
 	local-migrate local-seed local-test local-test-api local-test-e2e local-test-cov local-check-route-docstrings \
 	local-pre-commit-install local-clean \
 	docker-build docker-up docker-down docker-logs docker-shell-backend docker-shell-mysql docker-migrate docker-seed docker-test docker-config \
+	db-seed db-reset-hard db-grant-test-db-perms \
 	docker-edge-network docker-edge-build docker-edge-up docker-edge-down docker-edge-logs docker-edge-config \
 	prod-build prod-up prod-down prod-logs prod-seed prod-config \
 	env-init env-validate-local env-validate-docker env-validate-prod
@@ -20,6 +21,7 @@ DOCKER_COMPOSE := docker compose
 DOCKER_EDGE_COMPOSE := docker compose -f docker-compose.yml -f docker-compose.edge.yml
 PROD_COMPOSE := docker compose -f docker-compose.yml -f docker-compose.staging.yml
 ENV_VALIDATE := ./scripts/validate-env.sh
+DB_SERVICE ?= mysql
 
 # ============================================================================
 # HELP
@@ -40,8 +42,8 @@ help:
 	@echo "  make local-install-frontend - Install frontend dependencies only"
 	@echo "  make local-up             - Run backend + frontend local dev servers"
 	@echo "  make local-kill-ports     - Stop listeners on common local ports"
-	@echo "  make local-run-backend    - Start Django local dev server"
-	@echo "  make local-run-frontend   - Start Next.js local dev server"
+	@echo "  make local-run-backend    - Ensure mysql + stop docker backend, then run Django locally"
+	@echo "  make local-run-frontend   - Stop docker frontend service, then run Next.js locally"
 	@echo "  make local-migrate        - Apply Django migrations"
 	@echo "  make local-test           - Run all tests"
 	@echo "  make local-test-api       - Run API tests only"
@@ -63,6 +65,9 @@ help:
 	@echo "  make docker-seed          - Seed database with initial data in container"
 	@echo "  make docker-test          - Run backend tests in container"
 	@echo "  make docker-config        - Render final Compose config"
+	@echo "  make db-seed              - Seed database in Docker dev stack"
+	@echo "  make db-reset-hard        - Drop Docker DB volume and recreate mysql container"
+	@echo "  make db-grant-test-db-perms - Grant MySQL CREATE/DROP perms for test DBs"
 	@echo "  make docker-edge-network  - Create shared external Docker edge network"
 	@echo "  make docker-edge-build    - Build stack with edge override"
 	@echo "  make docker-edge-up       - Start stack with edge override in foreground"
@@ -131,6 +136,18 @@ local-up: local-kill-ports
 
 local-run: local-run-frontend
 
+local-env-dev:
+	./scripts/toggle-env.sh dev
+
+local-stop-docker-frontend:
+	@$(DOCKER_COMPOSE) stop frontend >/dev/null 2>&1 || true
+
+local-stop-docker-backend:
+	@$(DOCKER_COMPOSE) stop backend >/dev/null 2>&1 || true
+
+local-ensure-db:
+	@$(DOCKER_COMPOSE) up -d $(DB_SERVICE)
+
 local-kill-ports:
 	@echo "Stopping listeners on ports: $(LOCAL_KILL_PORTS)"
 	@for port in $(LOCAL_KILL_PORTS); do \
@@ -169,10 +186,10 @@ local-kill-ports:
 		fi; \
 	done
 
-local-run-frontend:
+local-run-frontend: local-stop-docker-frontend
 	NEXT_PUBLIC_API_URL=$(LOCAL_API_BASE_URL) npm run dev --prefix frontend
 
-local-run-backend:
+local-run-backend: local-env-dev local-ensure-db local-stop-docker-backend
 	$(PYTHON) $(BACKEND_DIR)/manage.py runserver
 
 local-migrate:
@@ -236,6 +253,15 @@ docker-migrate:
 
 docker-seed:
 	$(DOCKER_COMPOSE) exec backend python manage.py seed_dev
+
+db-seed: docker-seed
+
+db-reset-hard:
+	$(DOCKER_COMPOSE) down -v --remove-orphans
+	$(DOCKER_COMPOSE) up -d $(DB_SERVICE)
+
+db-grant-test-db-perms:
+	$(DOCKER_COMPOSE) exec -T $(DB_SERVICE) sh -lc 'mysql -uroot -p"$$MYSQL_ROOT_PASSWORD" -e "GRANT CREATE, DROP ON *.* TO '\''$$MYSQL_USER'\''@'\''%'\''; GRANT ALL PRIVILEGES ON test_$${MYSQL_DATABASE}.* TO '\''$$MYSQL_USER'\''@'\''%'\''; FLUSH PRIVILEGES;"'
 
 docker-test:
 	$(DOCKER_COMPOSE) exec backend pytest tests/ -v -m "not e2e"

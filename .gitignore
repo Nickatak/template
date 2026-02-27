@@ -35,10 +35,6 @@ local_settings.py
 /media
 /staticfiles
 
-# Database
-db.sqlite3
-*.db
-
 # IDE
 .idea/
 *.swp
